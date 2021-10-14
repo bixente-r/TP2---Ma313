@@ -1,0 +1,254 @@
+"""
+Maxime Gosselin 3PF2
+Ma313 - TP2
+14 octobre 2021
+Titre : Programme principal TP2 (basé sur mon TP Ma223)
+"""
+import TP2lib as tp
+import numpy as np
+import time
+import math as m
+import statistics as st
+import matplotlib.pyplot as plt
+
+M = tp.matrice_alea() # Crée les matrices inversibles aléatoires
+V = tp.vecteur_alea() # Crée les vecteurs aléatoires
+# F = np.array([[1, 1.01, 1, 1], [2, 4, -3, 2], [-1, -1, 0, -3], [1, -1, 4, 9]])
+# G = np.array([[1], [1], [2], [-8]])
+
+# H = np.array([[6, 6, 16], [-3, -9, -2], [6, -6, -8]])
+
+# print("Q =\n", tp.DecompositionGS(F)[0])
+# print("\n", "R =\n", tp.DecompositionGS(F)[1])
+# print(tp.ResolGS(F, G))
+
+
+
+
+
+
+debut = 100 # tailles des  matrices pour la création des graphiques
+fin = 1000
+pas = 50
+
+##### LISTES DES TEMPS ET DIMENSIONS LU #####
+
+l_temps_LU = list()
+l_log_temps_LU = list()
+
+l_n_LU = [j for j in range(debut, fin, pas)]
+
+l_log_n_LU = [m.log(j) for j in l_n_LU]
+
+
+l_resultats_LU = list()
+l_erreur_LU = list()
+
+
+##### BOUCLE PRINCIPALE LU #####
+
+ti = time.time()
+for i in range(len(M[0])):
+    
+    temps_init = time.time()
+    lu = tp.DecompositionLU3A(M[4][i])
+    l_resultats_LU.append(tp.ResolutionLU(lu[0], V[i], lu[1]))
+    temps_fin = time.time()
+
+    temps_calcul = temps_fin - temps_init
+    l_temps_LU.append(temps_calcul)
+    if l_temps_LU[i] != 0:
+        l_log_temps_LU.append(m.log(l_temps_LU[i]))
+    else:
+        l_log_temps_LU.append(-30)
+
+    err = np.linalg.norm(np.dot(M[5][i], l_resultats_LU[i])-V[i])
+    l_erreur_LU.append(err)
+
+l_erreur_LU_log = [m.log(j) for j in l_erreur_LU]
+
+
+modele_LU = np.polyfit(l_log_n_LU, l_log_temps_LU, 1)
+equation_LU = ("LU, y = "+format(modele_LU[0],".2e")+"x + "+format(modele_LU[1],".2e"))
+
+print("\n###### Méthode LU ######")
+print("Erreur moyenne : ", st.mean(l_erreur_LU))
+tf = time.time()
+temps_calcul_total = time.strftime('%H hrs %M min %S sec', time.gmtime(tf-ti))
+print("Temps total de calcul :", temps_calcul_total)
+print(l_erreur_LU)
+
+
+
+##### LISTES DES TEMPS ET DIMENSIONS np.linalg.solve #####
+
+l_temps_numpy = list()
+l_log_temps_numpy = list()
+
+l_n_numpy = [j for j in range(debut, fin, pas)]
+
+l_log_n_numpy = [m.log(j) for j in l_n_numpy]
+
+l_resultats_numpy = list()
+l_erreur_numpy = list()
+
+
+##### BOUCLE PRINCIPALE np.linalg.solve #####
+ti = time.time()
+for i in range(len(M[0])):
+    temps_init = time.time()
+    l_resultats_numpy.append(np.linalg.solve(M[3][i], V[i]))
+    temps_fin = time.time()
+
+    temps_calcul = temps_fin - temps_init
+    l_temps_numpy.append(temps_calcul)
+    if l_temps_numpy[i] != 0:
+        l_log_temps_numpy.append(m.log(l_temps_numpy[i]))
+    else:
+        l_log_temps_numpy.append(-30)
+    err = np.linalg.norm(np.dot(M[3][i], l_resultats_numpy[i])-V[i])
+    l_erreur_numpy.append(err)
+
+l_erreur_numpy_log = [m.log(j) for j in l_erreur_numpy]
+
+modele_numpy = np.polyfit(l_log_n_numpy, l_log_temps_numpy, 1)
+equation_numpy = ("linalg.solve, y = "+format(modele_numpy[0],".2e")+"x + "+format(modele_numpy[1],".2e"))
+print(equation_numpy)
+
+
+print("\n###### Numpy linalg.solve ######")
+print("Erreur moyenne : ", st.mean(l_erreur_numpy))
+tf = time.time()
+temps_calcul_total = time.strftime('%H hrs %M min %S sec', time.gmtime(tf-ti))
+print("Temps total de calcul :", temps_calcul_total)
+print(l_erreur_numpy)
+
+
+
+
+##### LISTES DES TEMPS ET DIMENSIONS np.linalg.qr #####
+
+l_temps_npQR = list()
+l_log_temps_npQR = list()
+
+l_n_npQR = [j for j in range(debut, fin, pas)]
+l_n_erreur_npQR = [j for j in range(debut, fin, pas)]
+
+l_log_n_npQR = [m.log(j) for j in l_n_npQR]
+
+
+l_resultats_npQR = list()
+l_erreur_npQR = list()
+
+
+##### LISTES DES TEMPS ET DIMENSIONS np.linalg.qr #####
+ti = time.time()
+for i in range(len(M[0])):
+    temps_init = time.time()
+    l_resultats_npQR.append(tp.ResolGS2(M[2][i], V[i]))
+    temps_fin = time.time()
+
+    temps_calcul = temps_fin - temps_init
+    l_temps_npQR.append(temps_calcul)
+    if l_temps_npQR[i] != 0:
+        l_log_temps_npQR.append(m.log(l_temps_npQR[i]))
+    else:
+        l_log_temps_npQR.append(-30)
+    err = np.linalg.norm(np.dot(M[2][i], l_resultats_npQR[i])-V[i])
+    l_erreur_npQR.append(err)
+
+l_erreur_npQR_log = [m.log(j) for j in l_erreur_npQR]
+
+modele_npQR=np.polyfit(l_log_n_npQR, l_log_temps_npQR, 1)
+equation_npQR=("QR - Numpy, y = "+format(modele_npQR[0],".2e")+"x + "+format(modele_npQR[1],".2e"))
+
+print("\n###### Méthode de QR - Numpy ######")
+print("Erreur moyenne : ", st.mean(l_erreur_npQR))
+tf = time.time()
+temps_calcul_total = time.strftime('%H hrs %M min %S sec', time.gmtime(tf-ti))
+print("Temps total de calcul :", temps_calcul_total)
+print(l_erreur_npQR)
+
+
+##### LISTES DES TEMPS ET DIMENSIONS GS #####
+
+l_temps = list()
+l_log_temps = list()
+
+l_n = [j for j in range(debut, fin, pas)]
+
+l_log_n = [m.log(j) for j in l_n]
+
+
+l_resultats = list()
+l_erreur = list()
+
+
+##### BOUCLE PRINCIPALE GS #####
+ti = time.time()
+for i in range(len(M[0])):
+    temps_init = time.time()
+    l_resultats.append(tp.ResolGS(M[0][i], V[i])) # on applique la méthode et on mesure le temps
+    temps_fin = time.time()
+
+    temps_calcul = temps_fin - temps_init
+    l_temps.append(temps_calcul)
+    if l_temps[i] != 0:
+        l_log_temps.append(m.log(l_temps[i]))
+    else:
+        l_log_temps.append(-30)
+    err = np.linalg.norm(M[0][i].dot(l_resultats[i])-V[i]) # on calcule la norme de l'erreur ||AX-B||
+    l_erreur.append(err)
+
+l_erreur_log = [m.log(j) for j in l_erreur]
+
+modele_QR=np.polyfit(l_log_n, l_log_temps, 1) # on crée une courbe de tendance polynomiale d'ordre 1 (une droite)
+equation_QR=("QR - Gram-Schmidt, y = "+format(modele_QR[0],".2e")+"x + "+format(modele_QR[1],".2e"))
+
+print("\n###### Méthode QR - Gram-Schmidt ######")
+print("Erreur moyenne : ", st.mean(l_erreur))
+tf = time.time()
+temps_calcul_total = time.strftime('%H hrs %M min %S sec', time.gmtime(tf-ti))
+print("Temps total de calcul :", temps_calcul_total)
+print(l_erreur)
+
+
+plt.title("Temps de résolution en fonction de n")
+plt.plot(l_n, l_temps, "o-", color="green", label="QR - Gram-Schmidt")
+plt.plot(l_n_LU, l_temps_LU, "o-.", color="blue", label="LU")
+plt.plot(l_n_npQR, l_temps_npQR,"o-.", color="magenta", label="Numpy QR")
+plt.plot(l_n_numpy, l_temps_numpy, "o-", color="cyan", label="Numpy solve()")
+plt.xlabel("Dimension, n")
+plt.ylabel("temps de calcul (sec)")
+plt.legend()
+plt.show()
+
+plt.title("[log-log] Temps de résolution en fonction de n")
+plt.plot(l_log_n, l_log_temps, "o-", color="green", label=equation_QR)
+plt.plot(l_log_n_LU, l_log_temps_LU, "o-.", color="blue", label=equation_LU)
+plt.plot(l_log_n_npQR, l_log_temps_npQR,"o-.", color="magenta", label=equation_npQR)
+plt.plot(l_log_n_numpy, l_log_temps_numpy, "o-", color="cyan", label="Numpy solve()")#label=equation_numpy
+plt.xlabel("Log Dimension, log(n)")
+plt.ylabel("Log temps de calcul (sec)")
+plt.legend()
+plt.show()
+
+plt.title("Graphe des erreurs en fonction de n")
+plt.plot(l_n, l_erreur, "o-", color="green", label="QR - Gram-Schmidt")
+plt.plot(l_n_LU, l_erreur_LU, "o-.", color="blue", label="LU")
+plt.plot(l_n_npQR, l_erreur_npQR,"o-.", color="magenta", label="Numpy QR")
+plt.plot(l_n_numpy, l_erreur_numpy, "o-", color="cyan", label="Numpy solve()")
+plt.xlabel("Dimension, n")
+plt.ylabel("Erreur ||Ax-B||")
+plt.legend()
+plt.show()
+
+plt.title("Log Erreurs")
+plt.plot(l_n, l_erreur_log, "o-", color="green", label="QR - Gram-Schmidt")
+plt.plot(l_n_LU, l_erreur_LU_log, "o-.", color="blue", label="LU")
+plt.plot(l_n_npQR, l_erreur_npQR_log,"o-.", color="magenta", label="Numpy QR")
+plt.plot(l_n_numpy, l_erreur_numpy_log, "o-", color="cyan", label="Numpy solve()")
+plt.xlabel("Dimension, n")
+plt.ylabel("Erreur Log(||Ax-B||)")
+plt.legend()
+plt.show()
